@@ -1,0 +1,2 @@
+"use client";
+export{k as Block,l as Streamdown,j as StreamdownContext,d as bundledLanguages,h as defaultRehypePlugins,i as defaultRemarkPlugins,e as isBundledLanguage,g as parseMarkdownIntoBlocks}from'./chunk-3RFZCSJT.js';

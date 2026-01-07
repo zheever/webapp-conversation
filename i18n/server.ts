@@ -1,8 +1,8 @@
 import 'server-only'
 
-import { cookies, headers } from 'next/headers'
-import Negotiator from 'negotiator'
 import { match } from '@formatjs/intl-localematcher'
+import Negotiator from 'negotiator'
+import { cookies, headers } from 'next/headers'
 import type { Locale } from '.'
 import { i18n } from '.'
 
@@ -26,5 +26,6 @@ export const getLocaleOnServer = async (): Promise<Locale> => {
 
   // match locale
   const matchedLocale = match(languages, locales, i18n.defaultLocale) as Locale
+
   return matchedLocale
 }

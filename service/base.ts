@@ -1,6 +1,6 @@
-import { API_PREFIX } from '@/config'
 import Toast from '@/app/components/base/toast'
 import type { AnnotationReply, MessageEnd, MessageReplace, ThoughtItem } from '@/app/components/chat/type'
+import { API_PREFIX } from '@/config'
 import type { VisionFile } from '@/types/app'
 
 const TIME_OUT = 100000
@@ -15,9 +15,11 @@ const ContentType = {
 const baseOptions = {
   method: 'GET',
   mode: 'cors',
-  credentials: 'include', // always send cookies、HTTP Basic authentication.
+  credentials: 'omit', // always send cookies、HTTP Basic authentication.
   headers: new Headers({
     'Content-Type': ContentType.json,
+    'x-app-code': 'VXlpzlegLqTeii9z',
+    'x-app-passport': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI3N2QwNDgwZC1kMmZkLTQ3NzctYTUxMS04ZTgyYjU0NjM2NzQiLCJzdWIiOiJXZWIgQVBJIFBhc3Nwb3J0IiwiYXBwX2lkIjoiNzdkMDQ4MGQtZDJmZC00Nzc3LWE1MTEtOGU4MmI1NDYzNjc0IiwiYXBwX2NvZGUiOiJWWGxwemxlZ0xxVGVpaTl6IiwiZW5kX3VzZXJfaWQiOiIwNzg1MTkyZS05MWUxLTQ5MjYtOGYzMC1jNWNiNGJkMDAxMjQifQ.TY0OQTov1CFDBKgJGNLOoCQ57lJhmHeE3gbOCy_IZ5s',
   }),
   redirect: 'follow',
 }
@@ -205,6 +207,21 @@ const handleStream = (
             else if (bufferObj.event === 'agent_thought') {
               onThought?.(bufferObj as ThoughtItem)
             }
+            else if (bufferObj.event === 'agent_log') {
+              // onThought?.(bufferObj as ThoughtItem)
+              const logData = bufferObj?.data?.data
+              console.log('agent_log', bufferObj?.data)
+              if (!logData || (!logData?.tool && !logData?.action && !logData?.action_name && !logData?.tool_name)) { return }
+              onThought?.({
+                tool: logData?.tool || logData?.tool_name || logData.action || logData?.action_name,
+                thought: logData?.thought,
+                tool_input: logData?.tool_input || logData?.action_input?.query || logData?.tool_call_args?.query,
+                observation: logData?.observation,
+                position: logData?.position,
+                files: logData?.files,
+                message_files: logData?.message_files,
+              } as ThoughtItem)
+            }
             else if (bufferObj.event === 'message_file') {
               onFile?.(bufferObj as VisionFile)
             }
@@ -374,7 +391,7 @@ export const ssePost = (
     method: 'POST',
   }, fetchOptions)
 
-  const urlPrefix = API_PREFIX
+  const urlPrefix = 'https://test-ai.seasungame.com//api'
   const urlWithPrefix = `${urlPrefix}${url.startsWith('/') ? url : `/${url}`}`
 
   const { body } = options

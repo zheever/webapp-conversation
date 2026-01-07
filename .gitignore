@@ -51,3 +51,7 @@ yarn.lock
 .serena
 # pmpm
 pnpm-lock.yaml
+
+*.key
+
+.idea/

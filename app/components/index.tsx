@@ -1,27 +1,28 @@
 'use client'
+import AppUnavailable from '@/app/components/app-unavailable'
+import type { FileUpload } from '@/app/components/base/file-uploader-in-attachment/types'
+import Loading from '@/app/components/base/loading'
+import Toast from '@/app/components/base/toast'
+import Chat from '@/app/components/chat'
+import ConfigSence from '@/app/components/config-scence'
+import Header from '@/app/components/header'
+import Sidebar from '@/app/components/sidebar'
+import { API_KEY, APP_ID, APP_INFO, isShowPrompt, promptTemplate } from '@/config'
+import useBreakpoints, { MediaType } from '@/hooks/use-breakpoints'
+import useConversation from '@/hooks/use-conversation'
+import { setLocaleOnClient } from '@/i18n/client'
+import { fetchAppParams, fetchChatList, fetchConversations, generationConversationName, sendChatMessage, updateFeedback } from '@/service'
+import type { ChatItem, ConversationItem, Feedbacktype, PromptConfig, PromptVariable, VisionFile, VisionSettings } from '@/types/app'
+import { Resolution, TransferMethod, WorkflowRunningStatus } from '@/types/app'
+import type { Annotation as AnnotationType } from '@/types/log'
+import { replaceVarWithValues, userInputsFormToPromptVariables } from '@/utils/prompt'
+import { addFileInfos, sortAgentSorts } from '@/utils/tools'
+import { parseUrlParams } from '@/utils/url-params'
+import { useBoolean, useGetState } from 'ahooks'
+import produce, { setAutoFreeze } from 'immer'
 import type { FC } from 'react'
 import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import produce, { setAutoFreeze } from 'immer'
-import { useBoolean, useGetState } from 'ahooks'
-import useConversation from '@/hooks/use-conversation'
-import Toast from '@/app/components/base/toast'
-import Sidebar from '@/app/components/sidebar'
-import ConfigSence from '@/app/components/config-scence'
-import Header from '@/app/components/header'
-import { fetchAppParams, fetchChatList, fetchConversations, generationConversationName, sendChatMessage, updateFeedback } from '@/service'
-import type { ChatItem, ConversationItem, Feedbacktype, PromptConfig, VisionFile, VisionSettings } from '@/types/app'
-import type { FileUpload } from '@/app/components/base/file-uploader-in-attachment/types'
-import { Resolution, TransferMethod, WorkflowRunningStatus } from '@/types/app'
-import Chat from '@/app/components/chat'
-import { setLocaleOnClient } from '@/i18n/client'
-import useBreakpoints, { MediaType } from '@/hooks/use-breakpoints'
-import Loading from '@/app/components/base/loading'
-import { replaceVarWithValues, userInputsFormToPromptVariables } from '@/utils/prompt'
-import AppUnavailable from '@/app/components/app-unavailable'
-import { API_KEY, APP_ID, APP_INFO, isShowPrompt, promptTemplate } from '@/config'
-import type { Annotation as AnnotationType } from '@/types/log'
-import { addFileInfos, sortAgentSorts } from '@/utils/tools'
 
 export interface IMainProps {
   params: any
@@ -78,6 +79,7 @@ const Main: FC<IMainProps> = () => {
     newConversationInputs,
     resetNewConversationInputs,
     setCurrInputs,
+    setNewConversationInputs,
     setNewConversationInfo,
     setExistConversationInfo,
   } = useConversation()
@@ -104,7 +106,6 @@ const Main: FC<IMainProps> = () => {
 
   const handleConversationSwitch = () => {
     if (!inited) { return }
-
     // update inputs of current conversation
     let notSyncToStateIntroduction = ''
     let notSyncToStateInputs: Record<string, any> | undefined | null = {}
@@ -122,6 +123,22 @@ const Main: FC<IMainProps> = () => {
     else {
       notSyncToStateInputs = newConversationInputs
       setCurrInputs(notSyncToStateInputs)
+
+      const prompt_variables = promptConfig?.prompt_variables || []
+
+      parseUrlParams(prompt_variables).then((urlParams: any) => {
+        if (Object.keys(urlParams).length > 0) {
+          setNewConversationInputs(urlParams)
+
+          // 检查所有必需参数是否已填充
+          if (checkAllRequiredParamsFilled(urlParams, prompt_variables)) {
+            // 所有必需参数已填充，自动启动对话
+            handleStartChat(urlParams)
+
+            setCurrConversationId('-1', APP_ID)
+          }
+        }
+      })
     }
 
     // update chat list of current conversation
@@ -151,7 +168,9 @@ const Main: FC<IMainProps> = () => {
       })
     }
 
-    if (isNewConversation && isChatStarted) { setChatList(generateNewChatListWithOpenStatement()) }
+    if (isNewConversation && isChatStarted) {
+      setChatList(generateNewChatListWithOpenStatement())
+    }
   }
   useEffect(handleConversationSwitch, [currConversationId, inited])
 
@@ -187,18 +206,22 @@ const Main: FC<IMainProps> = () => {
   // user can not edit inputs if user had send message
   const canEditInputs = !chatList.some(item => item.isAnswer === false) && isNewConversation
   const createNewChat = () => {
-    // if new chat is already exist, do not create new chat
-    if (conversationList.some(item => item.id === '-1')) { return }
+    setConversationList((prev) => {
+      // if new chat is already exist, do not create new chat
+      if (prev.some(item => item.id === '-1')) {
+        return prev
+      }
 
-    setConversationList(produce(conversationList, (draft) => {
-      draft.unshift({
-        id: '-1',
-        name: t('app.chat.newChatDefaultName'),
-        inputs: newConversationInputs,
-        introduction: conversationIntroduction,
-        suggested_questions: suggestedQuestions,
+      return produce(prev, (draft) => {
+        draft.unshift({
+          id: '-1',
+          name: t('app.chat.newChatDefaultName'),
+          inputs: newConversationInputs,
+          introduction: conversationIntroduction,
+          suggested_questions: suggestedQuestions,
+        })
       })
-    }))
+    })
   }
 
   // sometime introduction is not applied to state
@@ -275,7 +298,6 @@ const Main: FC<IMainProps> = () => {
           fileUploadConfig: file_upload?.fileUploadConfig,
         })
         setConversationList(conversations as ConversationItem[])
-
         if (isNotNewConversation) { setCurrConversationId(_conversationId, APP_ID, false) }
 
         setInited(true)
@@ -297,6 +319,31 @@ const Main: FC<IMainProps> = () => {
   const { notify } = Toast
   const logError = (message: string) => {
     notify({ type: 'error', message })
+  }
+
+  const checkAllRequiredParamsFilled = (
+    inputs: Record<string, any> | null,
+    promptVariables: PromptVariable[] | null,
+  ): boolean => {
+    if (!inputs || !promptVariables) {
+      return false
+    }
+
+    // 检查必需参数的数量
+    const requiredVariables = promptVariables.filter(v => v.required)
+    if (requiredVariables.length === 0) {
+      return true // 没有必需参数，认为已填充
+    }
+
+    // 检查所有必需参数是否都有值
+    for (const variable of requiredVariables) {
+      const value = inputs[variable.key]
+      if (!value || value === '') {
+        return false
+      }
+    }
+
+    return true
   }
 
   const checkCanSend = () => {
@@ -411,7 +458,7 @@ const Main: FC<IMainProps> = () => {
     let isAgentMode = false
 
     // answer
-    const responseItem: ChatItem = {
+    let responseItem: ChatItem = {
       id: `${Date.now()}`,
       content: '',
       agent_thoughts: [],
@@ -430,7 +477,12 @@ const Main: FC<IMainProps> = () => {
       },
       onData: (message: string, isFirstMessage: boolean, { conversationId: newConversationId, messageId, taskId }: any) => {
         if (!isAgentMode) {
-          responseItem.content = responseItem.content + message
+          // responseItem.content = responseItem.content + message
+          responseItem = {
+            ...responseItem,
+            content: responseItem.content + message,
+          }
+          console.log('!isAgentMode message', responseItem)
         }
         else {
           const lastThought = responseItem.agent_thoughts?.[responseItem.agent_thoughts?.length - 1]
@@ -651,7 +703,7 @@ const Main: FC<IMainProps> = () => {
   if (!APP_ID || !APP_INFO || !promptConfig) { return <Loading type='app' /> }
 
   return (
-    <div className='bg-gray-100'>
+    <div className=''>
       <Header
         title={APP_INFO.title}
         isMobile={isMobile}

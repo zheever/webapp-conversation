@@ -1,0 +1,18 @@
+{
+    auto_https off
+}
+
+:2015 {
+    respond "Hello, world!"
+}
+
+test-ai.seasungame.com:8443 {
+    tls ./niginx/ssl/_.seasungame.com.pem ./niginx/ssl/_.seasungame.com.key
+    
+    handle /webapp-conversation* {
+        header Permissions-Policy "clipboard-read=*, clipboard-write=*"
+        reverse_proxy localhost:3000
+    }
+}
+
+

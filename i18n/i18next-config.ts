@@ -1,23 +1,23 @@
 'use client'
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
-import commonEn from './lang/common.en'
-import commonEs from './lang/common.es'
-import commonZh from './lang/common.zh'
-import commonVi from './lang/common.vi'
-import commonJa from './lang/common.ja'
-import commonFr from './lang/common.fr'
 import appEn from './lang/app.en'
 import appEs from './lang/app.es'
-import appZh from './lang/app.zh'
-import appVi from './lang/app.vi'
-import appJa from './lang/app.ja'
 import appFr from './lang/app.fr'
+import appJa from './lang/app.ja'
+import appVi from './lang/app.vi'
+import appZh from './lang/app.zh'
+import commonEn from './lang/common.en'
+import commonEs from './lang/common.es'
+import commonFr from './lang/common.fr'
+import commonJa from './lang/common.ja'
+import commonVi from './lang/common.vi'
+import commonZh from './lang/common.zh'
 import toolsEn from './lang/tools.en'
-import toolsZh from './lang/tools.zh'
-import toolsVi from './lang/tools.vi'
-import toolsJa from './lang/tools.ja'
 import toolsFr from './lang/tools.fr'
+import toolsJa from './lang/tools.ja'
+import toolsVi from './lang/tools.vi'
+import toolsZh from './lang/tools.zh'
 
 import type { Locale } from '.'
 
@@ -74,7 +74,7 @@ i18n.use(initReactI18next)
   // init i18next
   // for all options read: https://www.i18next.com/overview/configuration-options
   .init({
-    lng: 'en',
+    lng: 'zh-Hans',
     fallbackLng: 'en',
     // debug: true,
     resources,

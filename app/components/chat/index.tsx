@@ -1,23 +1,23 @@
 'use client'
-import type { FC } from 'react'
-import React, { useEffect, useRef } from 'react'
-import cn from 'classnames'
-import { useTranslation } from 'react-i18next'
-import Textarea from 'rc-textarea'
-import s from './style.module.css'
-import Answer from './answer'
-import Question from './question'
-import type { FeedbackFunc } from './type'
-import type { ChatItem, VisionFile, VisionSettings } from '@/types/app'
-import { TransferMethod } from '@/types/app'
-import Tooltip from '@/app/components/base/tooltip'
-import Toast from '@/app/components/base/toast'
-import ChatImageUploader from '@/app/components/base/image-uploader/chat-image-uploader'
-import ImageList from '@/app/components/base/image-uploader/image-list'
-import { useImageFiles } from '@/app/components/base/image-uploader/hooks'
 import FileUploaderInAttachmentWrapper from '@/app/components/base/file-uploader-in-attachment'
 import type { FileEntity, FileUpload } from '@/app/components/base/file-uploader-in-attachment/types'
 import { getProcessedFiles } from '@/app/components/base/file-uploader-in-attachment/utils'
+import ChatImageUploader from '@/app/components/base/image-uploader/chat-image-uploader'
+import { useImageFiles } from '@/app/components/base/image-uploader/hooks'
+import ImageList from '@/app/components/base/image-uploader/image-list'
+import Toast from '@/app/components/base/toast'
+import Tooltip from '@/app/components/base/tooltip'
+import type { ChatItem, VisionFile, VisionSettings } from '@/types/app'
+import { TransferMethod } from '@/types/app'
+import cn from 'classnames'
+import Textarea from 'rc-textarea'
+import type { FC } from 'react'
+import React, { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
+import Answer from './answer'
+import Question from './question'
+import s from './style.module.css'
+import type { FeedbackFunc } from './type'
 
 export interface IChatProps {
   chatList: ChatItem[]
@@ -141,6 +141,8 @@ const Chat: FC<IChatProps> = ({
     handleSend()
   }
 
+  console.log('chat render', chatList)
+
   return (
     <div className={cn(!feedbackDisabled && 'px-3.5', 'h-full')}>
       {/* Chat List */}
@@ -148,6 +150,8 @@ const Chat: FC<IChatProps> = ({
         {chatList.map((item) => {
           if (item.isAnswer) {
             const isLast = item.id === chatList[chatList.length - 1].id
+            console.log('chat render item.content.length', item.content.length)
+
             return <Answer
               key={item.id}
               item={item}

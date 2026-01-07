@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import produce from 'immer'
-import { useGetState } from 'ahooks'
 import type { ConversationItem } from '@/types/app'
+import { useGetState } from 'ahooks'
+import produce from 'immer'
+import { useState } from 'react'
 
 const storageConversationIdKey = 'conversationIdInfo'
 
@@ -59,6 +59,7 @@ function useConversation() {
     existConversationInputs,
     resetNewConversationInputs,
     setCurrInputs,
+    setNewConversationInputs,
     currConversationInfo,
     setNewConversationInfo,
     setExistConversationInfo,

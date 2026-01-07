@@ -10,10 +10,14 @@ const LocaleLayout = async ({
 }) => {
   const locale = await getLocaleOnServer()
   return (
-    <html lang={locale ?? 'en'} className="h-full">
-      <body className="h-full">
-        <div className="overflow-x-auto">
-          <div className="w-screen h-screen min-w-[300px]">
+    <html lang={locale ?? 'en'} className="h-full" style={{
+      background: 'linear-gradient(to right, rgb(37, 99, 235), rgb(14, 165, 233))',
+    }}>
+      <body className="h-full" style={{
+        overflow: 'hidden',
+      }}>
+        <div className="overflow-x-auto px-[2px] pb-[2px]">
+          <div className=" min-w-[300px]">
             {children}
           </div>
         </div>

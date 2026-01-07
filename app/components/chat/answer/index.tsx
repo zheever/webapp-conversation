@@ -1,20 +1,20 @@
 'use client'
-import type { FC } from 'react'
-import type { FeedbackFunc } from '../type'
-import type { ChatItem, MessageRating, VisionFile } from '@/types/app'
-import type { Emoji } from '@/types/tools'
-import { HandThumbDownIcon, HandThumbUpIcon } from '@heroicons/react/24/outline'
-import React from 'react'
-import { useTranslation } from 'react-i18next'
 import Button from '@/app/components/base/button'
 import StreamdownMarkdown from '@/app/components/base/streamdown-markdown'
 import Tooltip from '@/app/components/base/tooltip'
 import WorkflowProcess from '@/app/components/workflow/workflow-process'
+import type { ChatItem, MessageRating, VisionFile } from '@/types/app'
+import type { Emoji } from '@/types/tools'
 import { randomString } from '@/utils/string'
+import { HandThumbDownIcon, HandThumbUpIcon } from '@heroicons/react/24/outline'
+import type { FC } from 'react'
+import React from 'react'
+import { useTranslation } from 'react-i18next'
 import ImageGallery from '../../base/image-gallery'
 import LoadingAnim from '../loading-anim'
 import s from '../style.module.css'
 import Thought from '../thought'
+import type { FeedbackFunc } from '../type'
 
 function OperationBtn({ innerContent, onClick, className }: { innerContent: React.ReactNode, onClick?: () => void, className?: string }) {
   return (
@@ -83,6 +83,8 @@ const Answer: FC<IAnswerProps> = ({
 }) => {
   const { id, content, feedback, agent_thoughts, workflowProcess, suggestedQuestions = [] } = item
   const isAgentMode = !!agent_thoughts && agent_thoughts.length > 0
+
+  console.log('Answer render', item.content)
 
   const { t } = useTranslation()
 
